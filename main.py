@@ -1,6 +1,8 @@
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-def rename_col(data):
+def renameCol(data):
     data.rename(columns={0 : "ID", 
                          1 : "Diagnosis",
                          2 : "radius",
@@ -20,14 +22,29 @@ def rename_col(data):
     data.rename(columns=dict(zip(data.columns[21:33], suffix)), inplace=True)
     return (data)
 
+def plotData(df):
+    plt.figure(figsize=(12,20))
+    sns.heatmap(df.corr())
+    plt.show()
+
+    for col in df.select_dtypes(float):
+        sns.displot(x=df[col], hue=df["Diagnosis"], kde=True)
+        plt.show()
+
 def main():
     try:
         data = pd.read_csv("data/data.csv", header=None)
     except:
         print("Can't read data.csv")
         return
-    data=rename_col(data)
+    data=renameCol(data)
     print(data)
+
+    #get target 'Diagnosis' as 'y'
+    y = data["Diagnosis"]
+    df = data.copy()
+
+    plotData(df)
 
 
 if __name__ == "__main__":
