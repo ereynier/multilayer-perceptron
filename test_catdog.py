@@ -22,7 +22,7 @@ X_train_reshape = X_train_reshape[:, :m_train]
 y_train = y_train[:, :m_train]
 y_test = y_test[:, :m_test]
 
-network = NeuralNetwork([X_train_reshape.shape[0], 32, 32, 32, 1])
+network = NeuralNetwork([X_train_reshape.shape[0], 32, 32, 32, 32, 32, 32, 1])
 
 network.fit_(X_train_reshape, y_train, n_iter=8000, alpha=0.01, plot=True, y_test=y_test, X_test=X_test_reshape)
 
