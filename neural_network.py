@@ -2,6 +2,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 
+from progressBar import progressBar
+
 class NeuralNetwork():
     def __init__(self, layers):
         #first layer must be "X_train.shape[0]"
@@ -48,39 +50,44 @@ class NeuralNetwork():
             self.params["b" + str(i)] = self.params["b" + str(i)] - alpha * self.gradients["db" + str(i)]
         return (self.params)
 
-    def fit_(self, X, y, alpha=0.1, epoch=20, samples=200, plot=False, X_test=np.array([]), y_test=np.array([])):
+    def fit_(self, X, y, alpha=0.1, epoch=20, batch_size=200, plot=False):
         train_loss = []
         train_acc = []
         test_loss = []
         test_acc = []
         
-        n_split = int(X.shape[1] / samples)
+        n_split = int(X.shape[1] / batch_size)
         if n_split == 0:
             n_split = 1
         print(f'Dataset split in {n_split}')
+
+        #mettre ça sous le "for i" et shuffle ici
         X_split = np.array_split(X, n_split, axis=1)
         y_split = np.array_split(y, n_split, axis=1)
 
         for i in range(epoch):
+            print(f'Epoch {i + 1}/{epoch}')
+            bar = progressBar(range(n_split))
+            bar.start()
+            bar_msg = ""
             for j in range(n_split):
                 self.forward_propagation(X_split[j])
                 self.back_propagation(X_split[j], y_split[j])
                 self.update(alpha)
-                print(f'Split {j + 1}/{n_split}')
-            
-            #progress bar
-            print(f'Epoch {i + 1}/{epoch}')
+                bar.update(j)
 
             #train_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y))
             y_pred = self.predict_(X)
             current_accuracy = accuracy_score(y.flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
 
-            if (np.any(X_test)) and (np.any(y_test)):
-                #test_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_test))
-                y_test_pred = self.predict_(X_test)
-                current_accuracy_test = accuracy_score(y_test.flatten(), y_test_pred.flatten())
-                test_acc.append(current_accuracy_test)
+            # VALIDATION SET
+            #test_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_test))
+            # y_test_pred = self.predict_(X_test)
+            # current_accuracy_test = accuracy_score(y_test.flatten(), y_test_pred.flatten())
+            # test_acc.append(current_accuracy_test)
+
+            print(f'Loss: - Val_loss: - Acc: - Val_acc: {current_accuracy}')
 
         if plot == True:
             plt.figure(figsize=(14,4))
@@ -91,13 +98,11 @@ class NeuralNetwork():
 
             plt.subplot(1, 2, 2)
             plt.plot(train_acc, label="train accuracy")
-            if (np.any(X_test) and np.any(y_test)):
-                plt.plot(test_acc, label="test accuracy")
-                print(test_acc[-1])
+            #plt.plot(test_acc, label="val accuracy")
+
+            #plt.title(f'train accuracy: {train_acc[-1]:.3f} / val accuracy: {test_acc[-1]:.3f}')
             plt.legend()
             plt.show()
-
-            print(train_acc[-1])
         
 
         return (self.params)

@@ -4,7 +4,7 @@ from sklearn.datasets import make_circles
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-X, y = make_circles(n_samples=1000, noise=0.1, factor=0.3, random_state=0)
+X, y = make_circles(n_samples=10000, noise=0.1, factor=0.3, random_state=0)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
@@ -23,7 +23,7 @@ y_test = y_test.reshape((1, y_test.shape[0]))
 
 network = NeuralNetwork([X_train.shape[0], 32, 32, 32, 1])
 
-network.fit_(X_train, y_train, epoch=2000, samples=1000, plot=True, X_test=X_test, y_test=y_test)
+network.fit_(X_train, y_train, epoch=4, batch_size=500, plot=True)
 
 y_pred = network.predict_(X_test)
 
