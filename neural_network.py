@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
-
 from progressBar import progressBar
 
 class NeuralNetwork():
@@ -53,19 +52,14 @@ class NeuralNetwork():
     def fit_(self, X, y, alpha=0.1, epoch=20, batch_size=200, plot=False):
         train_loss = []
         train_acc = []
-        test_loss = []
-        test_acc = []
+        val_loss = []
+        val_acc = []
         
-        n_split = int(X.shape[1] / batch_size)
-        if n_split == 0:
-            n_split = 1
-        print(f'Dataset split in {n_split}')
-
-        #mettre ça sous le "for i" et shuffle ici
-        X_split = np.array_split(X, n_split, axis=1)
-        y_split = np.array_split(y, n_split, axis=1)
+                
 
         for i in range(epoch):
+            X_split, y_split, X_val, y_val, n_split = self.shuffle_split_(X, y, batch_size)
+            #setup progress bar
             print(f'Epoch {i + 1}/{epoch}')
             bar = progressBar(range(n_split))
             bar.start()
@@ -82,12 +76,12 @@ class NeuralNetwork():
             train_acc.append(current_accuracy)
 
             # VALIDATION SET
-            #test_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_test))
-            # y_test_pred = self.predict_(X_test)
-            # current_accuracy_test = accuracy_score(y_test.flatten(), y_test_pred.flatten())
-            # test_acc.append(current_accuracy_test)
+            #val_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_val))
+            y_val_pred = self.predict_(X_val)
+            current_accuracy_val = accuracy_score(y_val.flatten(), y_val_pred.flatten())
+            val_acc.append(current_accuracy_val)
 
-            print(f'Loss: - Val_loss: - Acc: - Val_acc: {current_accuracy}')
+            print(f'Loss: - Val_loss: - Acc: {current_accuracy:.3f} - Val_acc: {current_accuracy_val:.3f} - Val size: {X_val.shape[1]}')
 
         if plot == True:
             plt.figure(figsize=(14,4))
@@ -98,9 +92,9 @@ class NeuralNetwork():
 
             plt.subplot(1, 2, 2)
             plt.plot(train_acc, label="train accuracy")
-            #plt.plot(test_acc, label="val accuracy")
+            #plt.plot(val_acc, label="val accuracy")
 
-            #plt.title(f'train accuracy: {train_acc[-1]:.3f} / val accuracy: {test_acc[-1]:.3f}')
+            #plt.title(f'train accuracy: {train_acc[-1]:.3f} / val accuracy: {val_acc[-1]:.3f}')
             plt.legend()
             plt.show()
         
@@ -123,3 +117,21 @@ class NeuralNetwork():
 
     def sigmoid_(self, z):
         return(1. / (1. + np.exp(-z)))
+
+    def shuffle_split_(self, X, y, batch_size):
+        #shuffle, split val set and batch
+        seed = np.random.randint(0, 2147483647)
+        X = X[:, np.random.RandomState(seed=seed).permutation(X.shape[1])]
+        y = y[:, np.random.RandomState(seed=seed).permutation(y.shape[1])]
+
+        X_train = np.delete(X, slice(int(-0.2 * X.shape[1]), None), axis=1)
+        X_val = X[:, int(-0.2 * X.shape[1]):]
+        y_train = np.delete(y, slice(int(-0.2 * y.shape[1]), None), axis=1)
+        y_val = y[:, int(-0.2 * y.shape[1]):]
+
+        n_split = int(X_train.shape[1] / batch_size)
+        if n_split == 0:
+            n_split = 1
+        X_split = np.array_split(X_train, n_split, axis=1)
+        y_split = np.array_split(y_train, n_split, axis=1)
+        return (X_split, y_split, X_val, y_val, n_split)

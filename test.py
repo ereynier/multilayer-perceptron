@@ -23,7 +23,7 @@ y_test = y_test.reshape((1, y_test.shape[0]))
 
 network = NeuralNetwork([X_train.shape[0], 32, 32, 32, 1])
 
-network.fit_(X_train, y_train, epoch=4, batch_size=500, plot=True)
+network.fit_(X_train, y_train, epoch=40, batch_size=500, plot=True)
 
 y_pred = network.predict_(X_test)
 

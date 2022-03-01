@@ -1,5 +1,6 @@
-shuffle
-validation set
-
 cross entropy
 softmax
+
+bonus:
+
+early stopping
