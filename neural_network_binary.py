@@ -3,7 +3,7 @@ from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from progressBar import progressBar
 
-class NeuralNetwork():
+class NeuralNetworkBinary():
     def __init__(self, layers):
         #first layer must be "X_train.shape[0]"
         #last layers can be "y_train.shape[0]"
@@ -23,13 +23,7 @@ class NeuralNetwork():
         self.activations["A0"] = X
         for i in range(1, self.n_layers + 1):
             Z = self.params["W" + str(i)].dot(A) + self.params["b" + str(i)]
-            #activation function
-            if i == self.n_layers:
-                #last neuron layers activation
-                self.activations["A" + str(i)] = self.softmax_(Z)
-            else:
-                self.activations["A" + str(i)] = self.sigmoid_(Z)  
-                
+            self.activations["A" + str(i)] = self.sigmoid_(Z)
             self.activations["Z" + str(i)] = Z
             A = self.activations["A" + str(i)]
         return (self.activations)
@@ -76,19 +70,18 @@ class NeuralNetwork():
                 self.update(alpha)
                 bar.update(j)
 
-
             y_pred = self.predict_(X)
-            train_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y))
+            train_loss.append(self.log_loss_(self.activations["A" + str(self.n_layers)] ,y))
             current_accuracy = accuracy_score(y.flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
-            
-            # # VALIDATION SET
+
+            # VALIDATION SET
             y_val_pred = self.predict_(X_val)
-            val_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_val))
+            val_loss.append(self.log_loss_(self.activations["A" + str(self.n_layers)] ,y_val))
             current_accuracy_val = accuracy_score(y_val.flatten(), y_val_pred.flatten())
             val_acc.append(current_accuracy_val)
 
-            print(f'Loss: {train_loss[-1]:.4f} - Val_loss: {val_loss[-1]:.4f} - Acc: {current_accuracy:.4f} - Val_acc: {current_accuracy_val:.4f} - Val size: {X_val.shape[1]}')
+            print(f'Loss: {train_loss[-1]} - Val_loss: {val_loss[-1]} - Acc: {current_accuracy:.3f} - Val_acc: {current_accuracy_val:.3f} - Val size: {X_val.shape[1]}')
 
         if plot == True:
             plt.figure(figsize=(14,4))
@@ -102,6 +95,7 @@ class NeuralNetwork():
             plt.plot(train_acc, label="train accuracy")
             plt.plot(val_acc, label="val accuracy")
 
+            #plt.title(f'train accuracy: {train_acc[-1]:.3f} / val accuracy: {val_acc[-1]:.3f}')
             plt.legend()
             plt.show()
         
@@ -110,22 +104,17 @@ class NeuralNetwork():
 
     def predict_(self, X):
         self.forward_propagation(X)
-        A = self.activations["A" + str(self.n_layers)].T
-        for k in range(len(A)):
-            i = np.argmax(A[k], axis=0)
-            A[k] = np.zeros(A[k].shape)
-            A[k][i] = 1
-        return A.T
+        A = self.activations["A" + str(self.n_layers)]
+        return A > 0.5
 
     def cross_entropy_(self, A, y):
         return -1 / self.layers[-1] * np.sum(y + np.log(A) + (1 - y) * np.log(1 - A))
 
+    def log_loss_(self, A, y):
+        return (1 / len(y) * np.sum(-y * np.log(A) - (1 - y) * np.log(1 - A)))
+
     def softmax_(self, z):
-        s = np.zeros((1, z.shape[0]))
-        for x in z.T:
-            s = np.concatenate((s, np.array([np.exp(x) / np.sum(np.exp(x))])), axis=0)
-        s = np.delete(s, 0, 0)
-        return s.T
+        return np.exp(z) / np.sum(np.exp(z))
 
     def sigmoid_(self, z):
         return(1. / (1. + np.exp(-z)))
@@ -140,7 +129,7 @@ class NeuralNetwork():
         X_val = X[:, int(-0.2 * X.shape[1]):]
         y_train = np.delete(y, slice(int(-0.2 * y.shape[1]), None), axis=1)
         y_val = y[:, int(-0.2 * y.shape[1]):]
-        
+
         n_split = int(X_train.shape[1] / batch_size)
         if n_split == 0:
             n_split = 1

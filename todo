@@ -4,3 +4,5 @@ softmax
 bonus:
 
 early stopping
+
+sauvegarde des metrics
