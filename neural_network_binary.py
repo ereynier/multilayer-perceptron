@@ -70,9 +70,9 @@ class NeuralNetworkBinary():
                 self.update(alpha)
                 bar.update(j)
 
-            y_pred = self.predict_(X)
-            train_loss.append(self.log_loss_(self.activations["A" + str(self.n_layers)] ,y))
-            current_accuracy = accuracy_score(y.flatten(), y_pred.flatten())
+            y_pred = self.predict_(X_split[-1])
+            train_loss.append(self.log_loss_(self.activations["A" + str(self.n_layers)] ,y_split[-1]))
+            current_accuracy = accuracy_score(y_split[-1].flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
 
             # VALIDATION SET

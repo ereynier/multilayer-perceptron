@@ -77,9 +77,9 @@ class NeuralNetwork():
                 bar.update(j)
 
 
-            y_pred = self.predict_(X)
-            train_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y))
-            current_accuracy = accuracy_score(y.flatten(), y_pred.flatten())
+            y_pred = self.predict_(X_split[0])
+            train_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_split[0]))
+            current_accuracy = accuracy_score(y_split[0].flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
             
             # # VALIDATION SET
@@ -110,7 +110,7 @@ class NeuralNetwork():
 
     def predict_(self, X):
         self.forward_propagation(X)
-        A = self.activations["A" + str(self.n_layers)].T
+        A = (self.activations["A" + str(self.n_layers)].T).copy()
         for k in range(len(A)):
             i = np.argmax(A[k], axis=0)
             A[k] = np.zeros(A[k].shape)
@@ -118,7 +118,7 @@ class NeuralNetwork():
         return A.T
 
     def cross_entropy_(self, A, y):
-        return -1 / self.layers[-1] * np.sum(y + np.log(A) + (1 - y) * np.log(1 - A))
+        return - (1 / self.layers[-1]) * np.sum(y * np.log(A) + (1 - y) * np.log(1 - A))
 
     def softmax_(self, z):
         s = np.zeros((1, z.shape[0]))

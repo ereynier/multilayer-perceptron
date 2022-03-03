@@ -25,9 +25,9 @@ y_test = y_test.T
 # print("y dim " + str(y.shape))
 
 
-network = NeuralNetwork([X_train.shape[0], 32, 32, 32, y_train.shape[0]])
+network = NeuralNetwork([X_train.shape[0], 16, 16, y_train.shape[0]])
 
-network.fit_(X_train, y_train, epoch=40, batch_size=500, plot=True)
+network.fit_(X_train, y_train, epoch=40, batch_size=100, plot=True)
 
 y_pred = network.predict_(X_test)
 
