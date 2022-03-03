@@ -12,6 +12,8 @@ y = np.concatenate((y, y), axis=1)
 for i in range(len(y)):
     y[i][1] = (y[i][1] + 1) % 2
 
+print(y)
+
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
 X_test = X_test.T
@@ -25,9 +27,9 @@ y_test = y_test.T
 # print("y dim " + str(y.shape))
 
 
-network = NeuralNetwork([X_train.shape[0], 16, 16, y_train.shape[0]])
+network = NeuralNetwork([X_train.shape[0], 32, 32, 32, y_train.shape[0]])
 
-network.fit_(X_train, y_train, epoch=40, batch_size=100, plot=True)
+network.fit_(X_train, y_train, epoch=80, batch_size=500, plot=True)
 
 y_pred = network.predict_(X_test)
 
