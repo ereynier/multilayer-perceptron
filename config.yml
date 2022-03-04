@@ -3,12 +3,8 @@
 #"Diagnosis_Worst", "radius_Worst", "texture_Worst", "perimeter_Worst", "area_Worst", "smoothness_Worst", "compactness_Worst", "concavity_Worst", "concave points_Worst", "symmetry_Worst", "fractal_Worst"
 features:
   - "radius"
-  - "texture"
   - "perimeter"
   - "area"
-  - "smoothness"
   - "compactness"
   - "concavity"
   - "concave points"
-  - "symmetry"
-  - "fractal"
