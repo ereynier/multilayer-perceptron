@@ -26,6 +26,7 @@ y_test = y_test.T
 # print("X dim " + str(X.shape))
 # print("y dim " + str(y.shape))
 
+print(X_test)
 
 network = NeuralNetwork([X_train.shape[0], 32, 32, 32, y_train.shape[0]])
 
