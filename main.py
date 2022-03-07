@@ -54,10 +54,10 @@ def main():
     y = enc.fit_transform(df[["Diagnosis"]].values)
 
     X = selectData(df)
+    #X = df.drop("Diagnosis", axis=1)
 
     X = normalize(X)
 
-    print(X.head)
 
     X = X.to_numpy()
 
@@ -69,10 +69,13 @@ def main():
     y_train = y_train.T
     y_test = y_test.T
 
+    # layers = [4] * 50
+    # layers.append(y_train.shape[0])
+    # layers.insert(0, X_train.shape[0])
 
-    network = NeuralNetwork([X_train.shape[0], 32, 32, y_train.shape[0]])
+    network = NeuralNetwork([X_train.shape[0], 32, 32, 32, y_train.shape[0]])
     
-    network.fit_(X_train, y_train, epoch=80, batch_size=500, plot=True)
+    network.fit_(X_train, y_train, epoch=80, batch_size=500, plot=True, early_stopping=0)
 
     y_pred = network.predict_(X_test)
 

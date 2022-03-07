@@ -2,6 +2,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from progressBar import progressBar
+from sklearn.model_selection import train_test_split
+
 
 class NeuralNetwork():
     def __init__(self, layers):
@@ -55,16 +57,21 @@ class NeuralNetwork():
             self.params["b" + str(i)] = self.params["b" + str(i)] - alpha * self.gradients["db" + str(i)]
         return (self.params)
 
-    def fit_(self, X, y, alpha=0.1, epoch=20, batch_size=200, plot=False):
+    def fit_(self, X, y, alpha=0.1, epoch=20, batch_size=200, plot=False, early_stopping=0):
         train_loss = []
         train_acc = []
         val_loss = []
         val_acc = []
         
-                
+        X_train, X_val, y_train, y_val = train_test_split(X.T, y.T, test_size=0.15)
+
+        X_train = X_train.T
+        X_val = X_val.T
+        y_train = y_train.T
+        y_val = y_val.T   
 
         for i in range(epoch):
-            X_split, y_split, X_val, y_val, n_split = self.shuffle_split_(X, y, batch_size)
+            X_split, y_split, n_split = self.shuffle_split_(X_train, y_train, batch_size)
             #setup progress bar
             print(f'Epoch {i + 1}/{epoch}')
             bar = progressBar(range(n_split))
@@ -89,6 +96,11 @@ class NeuralNetwork():
             val_acc.append(current_accuracy_val)
 
             print(f'Loss: {train_loss[-1]:.4f} - Val_loss: {val_loss[-1]:.4f} - Acc: {current_accuracy:.4f} - Val_acc: {current_accuracy_val:.4f} - Val size: {X_val.shape[1]}')
+
+            if len(val_loss) > 6:
+                if abs(sum(val_loss[-6:-1]) / len(val_loss[-6:-1]) - val_loss[-1]) < early_stopping:
+                    print(f"Early stopping")
+                    break
 
         if plot == True:
             plt.figure(figsize=(14,4))
@@ -118,7 +130,7 @@ class NeuralNetwork():
         return A.T
 
     def cross_entropy_(self, A, y):
-        return - (1 / self.layers[-1]) * np.sum(y * np.log(A) + (1 - y) * np.log(1 - A))
+        return - (1 / self.layers[-1]) * np.sum(y * np.log(A+1e-15) + (1 - y) * np.log(1e-15 + 1 - A))
 
     def softmax_(self, z):
         s = np.zeros((1, z.shape[0]))
@@ -136,14 +148,9 @@ class NeuralNetwork():
         X = X[:, np.random.RandomState(seed=seed).permutation(X.shape[1])]
         y = y[:, np.random.RandomState(seed=seed).permutation(y.shape[1])]
 
-        X_train = np.delete(X, slice(int(-0.2 * X.shape[1]), None), axis=1)
-        X_val = X[:, int(-0.2 * X.shape[1]):]
-        y_train = np.delete(y, slice(int(-0.2 * y.shape[1]), None), axis=1)
-        y_val = y[:, int(-0.2 * y.shape[1]):]
-        
-        n_split = int(X_train.shape[1] / batch_size)
+        n_split = int(X.shape[1] / batch_size)
         if n_split == 0:
             n_split = 1
-        X_split = np.array_split(X_train, n_split, axis=1)
-        y_split = np.array_split(y_train, n_split, axis=1)
-        return (X_split, y_split, X_val, y_val, n_split)
+        X_split = np.array_split(X, n_split, axis=1)
+        y_split = np.array_split(y, n_split, axis=1)
+        return (X_split, y_split, n_split)
