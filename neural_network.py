@@ -62,13 +62,15 @@ class NeuralNetwork():
         train_acc = []
         val_loss = []
         val_acc = []
+
+        self.metrics_hist = {}
         
         X_train, X_val, y_train, y_val = train_test_split(X.T, y.T, test_size=0.15)
 
         X_train = X_train.T
         X_val = X_val.T
         y_train = y_train.T
-        y_val = y_val.T   
+        y_val = y_val.T
 
         for i in range(epoch):
             X_split, y_split, n_split = self.shuffle_split_(X_train, y_train, batch_size)
@@ -81,6 +83,7 @@ class NeuralNetwork():
                 self.forward_propagation(X_split[j])
                 self.back_propagation(X_split[j], y_split[j])
                 self.update(alpha)
+                self.metrics_hist[f"Ep{i + 1}Sp{j + 1}"] = self.params
                 bar.update(j)
 
 
@@ -117,7 +120,6 @@ class NeuralNetwork():
             plt.legend()
             plt.show()
         
-
         return (self.params)
 
     def predict_(self, X):

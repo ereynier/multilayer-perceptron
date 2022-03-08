@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 import yaml
 import sys
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
 
 def renameCol(data):
     data.rename(columns={0 : "ID", 
@@ -75,7 +76,7 @@ def main():
 
     network = NeuralNetwork([X_train.shape[0], 32, 32, 32, y_train.shape[0]])
     
-    network.fit_(X_train, y_train, epoch=80, batch_size=500, plot=True, early_stopping=0)
+    network.fit_(X_train, y_train, epoch=80, batch_size=500, plot=True, early_stopping=0.1)
 
     y_pred = network.predict_(X_test)
 
@@ -90,6 +91,7 @@ def main():
             c += 1
     print(f'Good prediction: {(c / len(y_pred))*100:.2f}%')
     print(f'Accuracy: {accuracy_score(y_test.flatten(), y_pred.flatten())}')
+    print(f'F1 Score: {f1_score(y_test.flatten(), y_pred.flatten(), pos_label="M")}')
 
 
 if __name__ == "__main__":

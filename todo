@@ -2,4 +2,8 @@ bonus:
 
 early stopping / good ?
 
+early stopping if val score up
++
 sauvegarde des metrics
++
+back to good metrics if val up
