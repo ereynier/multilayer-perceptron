@@ -21,6 +21,7 @@ class NeuralNetwork():
 
     def forward_propagation(self, X):
         A = X
+        self.activations = {}
         #set A0 to X for back_propagation A(i - 1)
         self.activations["A0"] = X
         for i in range(1, self.n_layers + 1):
@@ -65,7 +66,7 @@ class NeuralNetwork():
 
         self.metrics_hist = {}
         
-        X_train, X_val, y_train, y_val = train_test_split(X.T, y.T, test_size=0.15)
+        X_train, X_val, y_train, y_val = train_test_split(X.T, y.T, test_size=0.20)
 
         X_train = X_train.T
         X_val = X_val.T
@@ -86,10 +87,9 @@ class NeuralNetwork():
                 self.metrics_hist[f"Ep{i + 1}Sp{j + 1}"] = self.params
                 bar.update(j)
 
-
-            y_pred = self.predict_(X_split[0])
-            train_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_split[0]))
-            current_accuracy = accuracy_score(y_split[0].flatten(), y_pred.flatten())
+            y_pred = self.predict_(X_train)
+            train_loss.append(self.cross_entropy_(self.activations["A" + str(self.n_layers)] ,y_train))
+            current_accuracy = accuracy_score(y_train.flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
             
             # # VALIDATION SET
@@ -132,8 +132,8 @@ class NeuralNetwork():
         return A.T
 
     def cross_entropy_(self, A, y):
-        return - (1 / self.layers[-1]) * np.sum(y * np.log(A+1e-15) + (1 - y) * np.log(1e-15 + 1 - A))
-
+        return - (1 / y.shape[1]) * np.sum(y * np.log(A+1e-15) + (1 - y) * np.log(1e-15 + 1 - A))
+        
     def softmax_(self, z):
         s = np.zeros((1, z.shape[0]))
         for x in z.T:

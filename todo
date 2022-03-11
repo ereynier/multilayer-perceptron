@@ -1,9 +1,5 @@
-bonus:
+loss formula
 
-early stopping / good ?
+early stopping
 
-early stopping if val score up
-+
-sauvegarde des metrics
-+
-back to good metrics if val up
+save / load weights

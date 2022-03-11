@@ -10,6 +10,8 @@ import sys
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
+from sklearn.metrics import classification_report
+
 def renameCol(data):
     data.rename(columns={0 : "ID", 
                          1 : "Diagnosis",
@@ -49,6 +51,7 @@ def main():
         return
     data=renameCol(data)
     df = data.copy()
+    print(df["perimeter"], df["perimeter_SE"], df["perimeter_Worst"])
 
     enc = OneHotEncoder(sparse=False)
 
@@ -92,6 +95,7 @@ def main():
     print(f'Good prediction: {(c / len(y_pred))*100:.2f}%')
     print(f'Accuracy: {accuracy_score(y_test.flatten(), y_pred.flatten())}')
     print(f'F1 Score: {f1_score(y_test.flatten(), y_pred.flatten(), pos_label="M")}')
+    print(classification_report(y_test, y_pred))
 
 
 if __name__ == "__main__":
