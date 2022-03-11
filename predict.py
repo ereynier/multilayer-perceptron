@@ -35,6 +35,7 @@ def renameCol(data):
 def selectData(df):
     with open('config.yml', "r") as f:
         config = yaml.safe_load(f)
+    #USE CONFIG FILE
     X = df[config["features"]]
     return (X)
 
@@ -48,6 +49,13 @@ def main():
     except:
         print("Can't read data.csv")
         return
+    
+    try:
+        filename = sys.argv[2]
+    except:
+        print("please enter a filename for weights and layers")
+        return
+
     data=renameCol(data)
     df = data.copy()
 
@@ -60,42 +68,42 @@ def main():
 
     X = normalize(X)
 
-
     X = X.to_numpy()
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-
     #transpose X y
-    X_test = X_test.T
-    X_train = X_train.T
-    y_train = y_train.T
-    y_test = y_test.T
+    X = X.T
+    y = y.T
 
-    # layers = [4] * 50
-    # layers.append(y_train.shape[0])
-    # layers.insert(0, X_train.shape[0])
+    try:
+        f = open(filename + ".layers", "r")
+        layers = f.read()
+        layers = str(layers)
+        f.close()
+    except Exception as e:
+        print("Error while reading layers : " + e)
+    layers = list(map(int, layers.split(', ')))
+    layers[0] = X.shape[0]
 
-    network = NeuralNetwork([X_train.shape[0], 64, 64, y_train.shape[0]])
+    network = NeuralNetwork(layers)
     
-    network.fit_(X_train, y_train, epoch=800, batch_size=500, plot=True, early_stopping=20, alpha=0.8)
 
-    network.save_('weights')
+    network.load_(filename + ".npy")
 
-    y_pred = network.predict_(X_test)
+    y_pred = network.predict_(X)
 
-    print(f'Loss: {network.cross_entropy_(network.activations["A" + str(network.n_layers)] ,y_test):.4f}')
+    print(f'Loss: {network.cross_entropy_(network.activations["A" + str(network.n_layers)] ,y):.4f}')
 
     #y_test proportion de bonne réponses
     y_pred = enc.inverse_transform(y_pred.T)
-    y_test = enc.inverse_transform(y_test.T)
+    y = enc.inverse_transform(y.T)
     c = 0
     for i in range(len(y_pred)):
-        if y_pred[i] == y_test[i]:
+        if y_pred[i] == y[i]:
             c += 1
     print(f'Good prediction: {(c / len(y_pred))*100:.2f}%')
-    print(f'Accuracy: {accuracy_score(y_test.flatten(), y_pred.flatten()):.4f}')
-    print(f'F1 Score: {f1_score(y_test.flatten(), y_pred.flatten(), pos_label="M"):.4f}')
-    print(classification_report(y_test, y_pred))
+    print(f'Accuracy: {accuracy_score(y.flatten(), y_pred.flatten()):.4f}')
+    print(f'F1 Score: {f1_score(y.flatten(), y_pred.flatten(), pos_label="M"):.4f}')
+    #print(classification_report(y_test, y_pred))
 
 
 if __name__ == "__main__":

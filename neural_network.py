@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from progressBar import progressBar
 from sklearn.model_selection import train_test_split
 
-
 class NeuralNetwork():
     def __init__(self, layers):
         #first layer must be "X_train.shape[0]"
@@ -58,13 +57,17 @@ class NeuralNetwork():
             self.params["b" + str(i)] = self.params["b" + str(i)] - alpha * self.gradients["db" + str(i)]
         return (self.params)
 
-    def fit_(self, X, y, alpha=0.1, epoch=20, batch_size=200, plot=False, early_stopping=0):
+    def fit_(self, X, y, alpha=0.1, epoch=20, batch_size=200, plot=False, early_stopping: int=0):
         train_loss = []
         train_acc = []
         val_loss = []
         val_acc = []
 
         self.metrics_hist = {}
+
+        min_loss = 99999
+        min_pos = 0
+        cross_pos = 0
         
         X_train, X_val, y_train, y_val = train_test_split(X.T, y.T, test_size=0.20)
 
@@ -98,12 +101,18 @@ class NeuralNetwork():
             current_accuracy_val = accuracy_score(y_val.flatten(), y_val_pred.flatten())
             val_acc.append(current_accuracy_val)
 
+
             print(f'Loss: {train_loss[-1]:.4f} - Val_loss: {val_loss[-1]:.4f} - Acc: {current_accuracy:.4f} - Val_acc: {current_accuracy_val:.4f} - Val size: {X_val.shape[1]}')
 
-            if len(val_loss) > 6:
-                if abs(sum(val_loss[-6:-1]) / len(val_loss[-6:-1]) - val_loss[-1]) < early_stopping:
-                    print(f"Early stopping")
-                    break
+            #early stopping
+            if val_loss[-1] < min_loss:
+                min_loss = val_loss[-1]
+                min_pos = len(val_loss) - 1
+            if len(val_loss) - min_pos > early_stopping:
+                #load weights
+                self.params = self.metrics_hist[f"Ep{min_pos}Sp{n_split}"]
+                print(f"Early stopping")
+                break
 
         if plot == True:
             plt.figure(figsize=(14,4))
@@ -132,7 +141,13 @@ class NeuralNetwork():
         return A.T
 
     def cross_entropy_(self, A, y):
-        return - (1 / y.shape[1]) * np.sum(y * np.log(A+1e-15) + (1 - y) * np.log(1e-15 + 1 - A))
+        y = y.T
+        A = A.T
+        s = 0
+        # for n in range(y.shape[0]):
+        #     s = s + (np.dot(y[n], np.log(A[n])) + np.dot((1 - y[n]), np.log(1 - A[n])))
+        return(- (1 / np.prod(y.shape)) * np.sum(y * np.log(A+1e-15) + (1 - y) * np.log(1e-15 + 1 - A)))
+        #return - s / y.shape[0]
         
     def softmax_(self, z):
         s = np.zeros((1, z.shape[0]))
@@ -143,6 +158,27 @@ class NeuralNetwork():
 
     def sigmoid_(self, z):
         return(1. / (1. + np.exp(-z)))
+
+    def save_(self, filename):
+        try:
+            np.save(filename, self.params)
+        except Exception as e:
+            print(f"Error with {filename} : {e}")
+        try:
+            f = open(filename + ".layers", "w")
+            f.write(str(self.layers)[1:-1])
+            f.close()
+        except Exception as e:
+            print(f"Error with {filename}.layers : {e}")
+        return filename
+    
+    def load_(self, filename):
+        try:
+            array = np.load(filename, allow_pickle=True)
+            self.params = dict(enumerate(array.flatten(), 1))[1]
+        except Exception as e:
+            print(f"Error with {filename} : {e}")
+            return
 
     def shuffle_split_(self, X, y, batch_size):
         #shuffle, split val set and batch
